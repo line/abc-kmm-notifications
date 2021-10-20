@@ -52,7 +52,7 @@ val kotlinxSerializationVersion: String by project
 val sharedStorageVersion: String by project
 val isSnapshotUpload = false
 
-group = "com.linecorp.abc"
+group = "com.linecorp"
 version = libVersion
 
 kotlin {
