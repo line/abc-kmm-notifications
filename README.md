@@ -113,9 +113,9 @@ plugins {
 }
 ```
 
-## Using
+## Using Simply
 
-### Definition of payload and map function in commonMain
+### Definition of payload and map function with generic in commonMain of your project
 ```kotlin
 @Serializable
 data class Data(
@@ -174,6 +174,33 @@ ABCNotifications.Companion()
     }.beginListening()
 ```
 
+#### Required implementation in AppDelegate
+
+```swift
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        ABCNotificationCenterDelegate.Companion().applicationDidFinishLaunching(options: options)
+        return true
+    }
+    
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        ABCNotificationCenterDelegate.Companion().applicationDidRegisterForRemoteNotifications(deviceToken: deviceToken)
+    }
+}
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        ABCNotificationCenterDelegate.Companion().userNotificationCenterWillPresent(notification: notification)
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        ABCNotificationCenterDelegate.Companion().userNotificationCenterDidReceive(response: response)
+    }
+}
+```
+
 #### FCM on iOS
 
 1. Insert the dependency in shared.podspec
@@ -202,47 +229,58 @@ ABCNotifications.Companion()
         }.beginListening()
     ```
 
-#### Required implementation in AppDelegate
+## Using Advanced
+
+### Shared configuration in commonMain
+```kotlin
+
+fun initABCNotifications(block: ABCNotifications.Companion.() -> Unit) {
+    ABCNotifications.apply(block)
+    
+    ABCNotifications
+        .onNewToken(this) {
+            // TODO: send to register ${ABCDeviceToken.value} to server
+        }
+        .beginListening()
+}
+```
+
+### Android
+```kotlin
+ABCNotifications
+    .onDeletedMessages(this) {
+        // TODO: sync messages to server
+    }
+    .onMessageReceived(this) {
+        // FCM RemoteMessage
+        val remoteMessage = it.remoteMessage
+        
+        // decode to Payload with Data
+        val payload = it.payload()
+
+        // decode to Data
+        val data = it.decodedData<Data>()
+
+        // TODO: present a dialog for push notification
+    }
+```
+
+### iOS
 
 ```swift
-class AppDelegate: UIResponder, UIApplicationDelegate {
+ABCNotifications.Companion()
+    .registerSettings {
+        $0.add(type: .alert)
+        $0.add(type: .badge)
+        $0.add(type: .sound)
+    }
+    .onMessageReceived(target: self) {
+        guard let payload = try? $0.payload() else { return }
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        ABCNotificationCenterDelegate.Companion().applicationDidFinishLaunching(options: options)
-        return true
+        if $0.isInactive {
+            // TODO: present a view controller on inactive
+        } else {
+            // TODO: present a toast message on active
+        }
     }
-    
-    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        ABCNotificationCenterDelegate.Companion().applicationDidRegisterForRemoteNotifications(deviceToken: deviceToken)
-    }
-    
-    // MARK: - Push Notification for iOS 9
-    
-    func application(_ application: UIApplication, didRegister notificationSettings: UIUserNotificationSettings) {
-        ABCNotificationCenterDelegate.Companion().applicationDidRegisterNotification()
-    }
-    
-    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any]) {
-        ABCNotificationCenterDelegate.Companion().applicationDidReceiveRemoteNotification(userInfo: userInfo)
-    }
-    
-    // MARK: - Local Notification
-    
-    func application(_ application: UIApplication, didReceive notification: UILocalNotification) {
-        ABCNotificationCenterDelegate.Companion().applicationDidReceive(notification: notification)
-    }
-}
-
-extension AppDelegate: UNUserNotificationCenterDelegate {
-    
-    @available(iOS 10.0, *)
-    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        ABCNotificationCenterDelegate.Companion().userNotificationCenterWillPresent(notification: notification)
-    }
-    
-    @available(iOS 10.0, *)
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        ABCNotificationCenterDelegate.Companion().userNotificationCenterDidReceive(response: response)
-    }
-}
 ```

@@ -4,10 +4,6 @@ import UIKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
-    var window: UIWindow?
-    
-    private let isNotTest = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         if isNotTest {
@@ -64,39 +60,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         print("didFailToRegisterForRemoteNotificationsWithError", error)
     }
     
-    // MARK: - Push Notification for iOS 9
+    var window: UIWindow?
     
-    func application(_ application: UIApplication, didRegister notificationSettings: UIUserNotificationSettings) {
-        if isNotTest {
-            ABCNotificationCenterDelegate.Companion().applicationDidRegisterNotification()
-        }
-    }
-    
-    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any]) {
-        if isNotTest {
-            ABCNotificationCenterDelegate.Companion().applicationDidReceiveRemoteNotification(userInfo: userInfo)
-        }
-    }
-    
-    // MARK: - Local Notification
-    
-    func application(_ application: UIApplication, didReceive notification: UILocalNotification) {
-        if isNotTest {
-            ABCNotificationCenterDelegate.Companion().applicationDidReceive(notification: notification)
-        }
-    }
+    private let isNotTest = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
 }
 
 extension AppDelegate: UNUserNotificationCenterDelegate {
     
-    @available(iOS 10.0, *)
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         if isNotTest {
             ABCNotificationCenterDelegate.Companion().userNotificationCenterWillPresent(notification: notification)
         }
     }
     
-    @available(iOS 10.0, *)
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         if isNotTest {
             ABCNotificationCenterDelegate.Companion().userNotificationCenterDidReceive(response: response)
