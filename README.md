@@ -234,27 +234,26 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 ### Shared configuration in commonMain
 ```kotlin
 
-fun initABCNotifications(block: ABCNotifications.Companion.() -> Unit) {
-    ABCNotifications.apply(block)
-    
-    ABCNotifications
-        .onNewToken(this) {
-            // TODO: send to register ${ABCDeviceToken.value} to server
-        }
-        .beginListening()
+fun ABCNotifications.Companion.configure(block: ABCNotifications.Companion.() -> Unit) {
+    apply(block)
+
+    onNewToken(this) {
+        // TODO: send to register ${ABCDeviceToken.value} to server
+    }.beginListening()
 }
 ```
 
 ### Android
 ```kotlin
-ABCNotifications
-    .onDeletedMessages(this) {
+
+ABCNotifications.configure {
+    onDeletedMessages(this) {
         // TODO: sync messages to server
     }
-    .onMessageReceived(this) {
+    onMessageReceived(this) {
         // FCM RemoteMessage
         val remoteMessage = it.remoteMessage
-        
+
         // decode to Payload with Data
         val payload = it.payload()
 
@@ -263,18 +262,19 @@ ABCNotifications
 
         // TODO: present a dialog for push notification
     }
+}
 ```
 
 ### iOS
 
 ```swift
-ABCNotifications.Companion()
-    .registerSettings {
+ABCNotifications.Companion().configure { [unowned self] in
+    $0.registerSettings {
         $0.add(type: .alert)
         $0.add(type: .badge)
         $0.add(type: .sound)
     }
-    .onMessageReceived(target: self) {
+    $0.onMessageReceived(target: self) {
         guard let payload = try? $0.payload() else { return }
 
         if $0.isInactive {
@@ -283,4 +283,5 @@ ABCNotifications.Companion()
             // TODO: present a toast message on active
         }
     }
+}
 ```
