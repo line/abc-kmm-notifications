@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "572458133815",
+    "project_id": "sample-d398e",
+    "storage_bucket": "sample-d398e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:572458133815:android:994374f939e25a66f5d2b2",
+        "android_client_info": {
+          "package_name": "com.linecorp.abc.notifications.Sample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "572458133815-skcf4c137u4e913ta0qf5oadaocokv8s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC97-d4PnAfnqePu3L15ccgWMY0WX6a920"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "572458133815-skcf4c137u4e913ta0qf5oadaocokv8s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
