@@ -97,7 +97,7 @@ plugins {
 }
 ```
 
-## Using Simply
+## Usage
 
 ### Definition of payload and map function with generic in commonMain of your project
 ```kotlin
@@ -213,7 +213,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         }.beginListening()
     ```
 
-## Using Advanced
+## Advanced
 
 ### Shared configuration in commonMain
 ```kotlin
