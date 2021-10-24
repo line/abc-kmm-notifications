@@ -21,4 +21,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "abc-kmm-notifications"
+rootProject.name = "kmm-notifications"

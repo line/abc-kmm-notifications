@@ -15,7 +15,7 @@ android {
     compileSdk = 30
     defaultConfig {
         applicationId = "com.linecorp.abc.notifications.Sample"
-        minSdk = 24
+        minSdk = 21
         targetSdk = 30
     }
 }

@@ -9,7 +9,7 @@ plugins {
 }
 
 val abcNotificationsVersion: String by project
-val abcNotifications = "com.linecorp.abc:abc-kmm-notifications:$abcNotificationsVersion"
+val abcNotifications = "com.linecorp.abc:kmm-notifications:$abcNotificationsVersion"
 val kotlinxSerializationVersion: String by project
 version = "1.0"
 
@@ -32,7 +32,7 @@ kotlin {
 
     cocoapods {
         ios.deploymentTarget = "10.0"
-        homepage = "https://git.linecorp.com/abc/abc-kmm-notifications/sample/iosApp"
+        homepage = "https://github.com/line/abc-kmm-notifications/sample/iosApp"
         summary = "Sample for abc-kmm-notifications"
         podfile = project.file("../iosApp/Podfile")
         noPodspec()
@@ -57,7 +57,7 @@ kotlin {
                 api(abcNotifications)
                 api("ch.qos.logback:logback-classic:1.2.3")
                 api("com.google.firebase:firebase-analytics-ktx:18.0.3")
-                api("com.google.firebase:firebase-messaging-ktx:18.0.3")
+                api("com.google.firebase:firebase-messaging-ktx:21.0.1")
             }
         }
         val androidTest by getting {

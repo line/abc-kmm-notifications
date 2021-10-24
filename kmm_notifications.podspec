@@ -1,14 +1,14 @@
 Pod::Spec.new do |spec|
-    spec.name                     = 'abc_kmm_notifications'
+    spec.name                     = 'kmm_notifications'
     spec.version                  = '0.4.1'
-    spec.homepage                 = 'https://git.linecorp.com/abc/abc-kmm-notifications'
+    spec.homepage                 = 'https://github.com/line/abc-kmm-notifications'
     spec.source                   = { :git => "Not Published", :tag => "Cocoapods/#{spec.name}/#{spec.version}" }
     spec.authors                  = ''
     spec.license                  = ''
     spec.summary                  = 'Remote Notification Manager for Kotlin Multiplatform Mobile'
 
     spec.static_framework         = true
-    spec.vendored_frameworks      = "build/cocoapods/framework/abc_kmm_notifications.framework"
+    spec.vendored_frameworks      = "build/cocoapods/framework/kmm_notifications.framework"
     spec.libraries                = "c++"
     spec.module_name              = "#{spec.name}_umbrella"
 
@@ -28,7 +28,7 @@ Pod::Spec.new do |spec|
 
     spec.script_phases = [
         {
-            :name => 'Build abc_kmm_notifications',
+            :name => 'Build kmm_notifications',
             :execution_position => :before_compile,
             :shell_path => '/bin/sh',
             :script => <<-SCRIPT

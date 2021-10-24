@@ -10,12 +10,11 @@ Remote Notification Manager for [Kotlin Multiplatform Mobile](https://kotlinlang
 
 ## Features
 
-- Simple to use APNS and FCM
-- Make codes less
-- No need to write codes to support any OS versions
-- Provide shared interface
-- Support Kotlin Multiplatform Mobile
+- Super easy to use APNs and FCM in one interface
+- Dramatically reduce code to write
+- Support for generic model mapping
 - Support FCM for iOS
+- Migration Support for React Native
 
 ## Requirements
 - iOS
@@ -45,21 +44,6 @@ buildscript {
         classpath("com.google.gms:google-services:4.3.5")
     }
 }
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven {
-            url = uri("http://repo.navercorp.com/maven-release/")
-            isAllowInsecureProtocol = true
-        }
-        maven {
-            url = uri("http://repo.navercorp.com/maven-snapshot/")
-            isAllowInsecureProtocol = true
-        }
-    }
-}
 ```
 #### build.gradle.kts in shared
 ```kotlin
@@ -69,7 +53,7 @@ plugins {
     kotlin("plugin.serialization")
 }
 
-val abcNotifications = "com.linecorp.abc:abc-kmm-notifications:0.4.1"
+val abcNotifications = "com.linecorp.abc:kmm-notifications:0.4.1"
 val kotlinxSerialization = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2"
 
 kotlin {
@@ -207,7 +191,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     ```ruby
     spec.dependency 'FirebaseMessaging'
     ```
-2. Insert function into cocoapods deifition in build.gradle.kts (shared)
+2. Insert function into cocoapods definition in build.gradle.kts (shared)
     ```kotlin
     cocoapods {
         noPodspec()
