@@ -1,3 +1,9 @@
+import org.jetbrains.kotlin.cli.common.toBooleanLenient
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+
+val isSnapshotUpload = System.getProperty("snapshot").toBooleanLenient() ?: false
+val libVersion = "0.4.1"
+val gitName = "abc-${project.name}"
 
 buildscript {
     repositories {
@@ -15,21 +21,6 @@ buildscript {
     }
 }
 
-allprojects {
-    ext {
-        set("compileSdk", 30)
-        set("minSdk", 21)
-        set("targetSdk", 30)
-    }
-
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-        mavenLocal()
-    }
-}
-
 plugins {
     id("com.android.library")
     id("maven-publish")
@@ -39,26 +30,118 @@ plugins {
     kotlin("plugin.serialization")
 }
 
-val firebaseAnalyticsVersion: String by project
-val firebaseMessagingVersion: String by project
-val kotlinxSerializationVersion: String by project
-val sharedStorageVersion: String by project
-val isSnapshotUpload = false
+allprojects {
+    ext {
+        set("compileSdkVersion", 30)
+        set("minSdkVersion", 21)
+        set("targetSdkVersion", 30)
+    }
 
-group = "com.linecorp.abc"
-version = "0.4.1"
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+        mavenLocal()
+    }
+
+    group = "com.linecorp.abc"
+    version = if (isSnapshotUpload) "$libVersion-SNAPSHOT" else libVersion
+
+    val javadocJar by tasks.registering(Jar::class) {
+        archiveClassifier.set("javadoc")
+    }
+
+    afterEvaluate {
+        extensions.findByType<PublishingExtension>()?.apply {
+            repositories {
+                maven {
+                    url = if (isSnapshotUpload) {
+                        uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                    } else {
+                        uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    }
+
+                    val sonatypeUsername: String? by project
+                    val sonatypePassword: String? by project
+
+                    println("sonatypeUsername, sonatypePassword -> $sonatypeUsername, ${sonatypePassword?.masked()}")
+
+                    credentials {
+                        username = sonatypeUsername ?: ""
+                        password = sonatypePassword ?: ""
+                    }
+                }
+            }
+
+            publications.withType<MavenPublication>().configureEach {
+                artifact(javadocJar.get())
+
+                pom {
+                    name.set(artifactId)
+                    description.set("Remote Notification Manager for Kotlin Multiplatform Mobile iOS and android")
+                    url.set("https://github.com/line/$gitName")
+
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                    }
+                    developers {
+                        developer {
+                            name.set("LINE Corporation")
+                            email.set("dl_oss_dev@linecorp.com")
+                            url.set("https://engineering.linecorp.com/en/")
+                        }
+                        developer {
+                            id.set("pisces")
+                            name.set("Steve Kim")
+                            email.set("pisces@linecorp.com")
+                        }
+                        developer {
+                            id.set("sanghyuk.nam")
+                            name.set("Sanghyuk Nam")
+                            email.set("sanghyuk.nam@navercorp.com")
+                        }
+                    }
+                    scm {
+                        connection.set("scm:git@github.com:line/$gitName.git")
+                        developerConnection.set("scm:git:ssh://github.com:line/$gitName.git")
+                        url.set("http://github.com/line/$gitName")
+                    }
+                }
+            }
+        }
+
+        extensions.findByType<SigningExtension>()?.apply {
+            val publishing = extensions.findByType<PublishingExtension>() ?: return@apply
+            val signingKey: String? by project
+            val signingPassword: String? by project
+
+            println("signingKey, signingPassword -> ${signingKey?.slice(0..9)}, ${signingPassword?.masked()}")
+
+            isRequired = !isSnapshotUpload
+            useInMemoryPgpKeys(signingKey, signingPassword)
+            sign(publishing.publications)
+        }
+
+        tasks.withType<Sign>().configureEach {
+            onlyIf { !isSnapshotUpload }
+        }
+    }
+}
 
 kotlin {
     cocoapods {
         summary = "Remote Notification Manager for Kotlin Multiplatform Mobile"
-        homepage = "https://github.com/line/abc-kmm-notifications"
+        homepage = "https://github.com/line/$gitName"
         ios.deploymentTarget = "10.0"
         pod("FirebaseMessaging")
     }
 
     val enableGranularSourceSetsMetadata = project.extra["kotlin.mpp.enableGranularSourceSetsMetadata"]?.toString()?.toBoolean() ?: false
     if (enableGranularSourceSetsMetadata) {
-        val iosTarget: (String, org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget.() -> Unit) -> org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget =
+        val iosTarget: (String, KotlinNativeTarget.() -> Unit) -> KotlinNativeTarget =
             if (System.getenv("SDK_NAME")?.startsWith("iphoneos") == true)
                 ::iosArm64
             else
@@ -73,6 +156,11 @@ kotlin {
     }
 
     sourceSets {
+        val firebaseAnalyticsVersion: String by project
+        val firebaseMessagingVersion: String by project
+        val kotlinxSerializationVersion: String by project
+        val sharedStorageVersion: String by project
+        
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
@@ -114,13 +202,15 @@ kotlin {
 }
 
 android {
-    compileSdk = project.ext.get("compileSdk") as Int
+    val compileSdkVersion = project.ext.get("compileSdkVersion") as Int
+    val minSdkVersion = project.ext.get("minSdkVersion") as Int
+    val targetSdkVersion = project.ext.get("targetSdkVersion") as Int
 
+    compileSdk = compileSdkVersion
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-
     defaultConfig {
-        minSdk = project.ext.get("minSdk") as Int
-        targetSdk = project.ext.get("targetSdk") as Int
+        minSdk = minSdkVersion
+        targetSdk = targetSdkVersion
     }
     buildTypes {
         getByName("debug") {
@@ -134,86 +224,6 @@ android {
     lint {
         isAbortOnError = false
     }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("abcNotifications") {
-            if (isSnapshotUpload) {
-                from(components.findByName("debug"))
-            } else {
-                from(components.findByName("release"))
-            }
-
-            groupId = project.group.toString()
-            artifactId = project.name
-            version = if (isSnapshotUpload) "${rootProject.version}-SNAPSHOT" else rootProject.version.toString()
-            val gitRepositoryName = "abc-$artifactId"
-
-            pom {
-                name.set(artifactId)
-                description.set("Remote Notification Manager for Kotlin Multiplatform Mobile iOS and android")
-                url.set("https://github.com/line/$gitRepositoryName")
-
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-
-                developers {
-                    developer {
-                        name.set("LINE Corporation")
-                        email.set("dl_oss_dev@linecorp.com")
-                        url.set("https://engineering.linecorp.com/en/")
-                    }
-                    developer {
-                        id.set("pisces")
-                        name.set("Steve Kim")
-                        email.set("pisces@linecorp.com")
-                    }
-                }
-
-                scm {
-                    connection.set("scm:git@github.com:line/$gitRepositoryName.git")
-                    developerConnection.set("scm:git:ssh://github.com:line/$gitRepositoryName.git")
-                    url.set("http://github.com/line/$gitRepositoryName")
-                }
-            }
-        }
-    }
-    repositories {
-        maven {
-            name = "MavenCentral"
-            url = if (isSnapshotUpload) {
-                uri("https://oss.sonatype.org/content/repositories/snapshots/")
-            } else {
-                uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-            }
-
-            val sonatypeUsername: String? by project
-            val sonatypePassword: String? by project
-
-            println("sonatypeUsername, sonatypePassword -> $sonatypeUsername, ${sonatypePassword?.masked()}")
-
-            credentials {
-                username = sonatypeUsername ?: ""
-                password = sonatypePassword ?: ""
-            }
-        }
-    }
-}
-
-signing {
-    val signingKey: String? by project
-    val signingPassword: String? by project
-
-    println("signingKey, signingPassword -> ${signingKey?.slice(0..9)}, ${signingPassword?.masked()}")
-
-    isRequired = !isSnapshotUpload
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign(publishing.publications["abcNotifications"])
 }
 
 fun String.masked() = map { "*" }.joinToString("")
