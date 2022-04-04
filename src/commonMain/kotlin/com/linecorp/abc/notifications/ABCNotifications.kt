@@ -27,6 +27,10 @@ class ABCNotifications {
             dequeue()
         }
 
+        fun isMessageHandleable(): Boolean {
+            return onMessageReceivedMap.isNotEmpty()
+        }
+
         fun onMessageReceived(target: Any, block: OnMessageReceivedBlock): Companion {
             onMessageReceivedMap[target] = block
             return this

@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
     spec.name                     = 'kmm_notifications'
-    spec.version                  = '0.4.1'
+    spec.version                  = '0.4.2'
     spec.homepage                 = 'https://github.com/line/abc-kmm-notifications'
     spec.source                   = { :git => "Not Published", :tag => "Cocoapods/#{spec.name}/#{spec.version}" }
     spec.authors                  = ''
